@@ -1,6 +1,8 @@
 from core.db import insert_targets
 from termcolor import colored  # type: ignore
 from typing import List
+import core.logging as logging
+
 
 def integrate_targets(filename: str, db_path: str) -> None:
     """Integrate targets from a file into the database."""
@@ -16,6 +18,6 @@ def save_targets_to_file(domains: List[str], output_file: str) -> None:
         with open(output_file, 'w') as file:
             for domain in domains:
                 file.write(domain + '\n')
-        print(f"INFO: Domains successfully saved to {output_file}")
+        logging.print_info(f"Domains successfully saved to {output_file}")
     except IOError as e:
-        print(colored(f"ERROR: File I/O error: {e}", "red"))
+        logging.print_error(f"File I/O error: {e}")

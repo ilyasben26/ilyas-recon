@@ -11,6 +11,8 @@ import core.enumerate as enum
 import core.dns as dns
 import core.nuclei as nuclei
 import core.targets as targets
+import core.stats as stats
+import core.logging as logging
 
 def is_valid_date(date_str: str) -> bool:
     pattern = r'^\d{4}-\d{2}-\d{2}$'
@@ -19,7 +21,7 @@ def is_valid_date(date_str: str) -> bool:
 def handle_enumerate(args: argparse.Namespace) -> None:
     count_targets_before = db.get_count_targets(config.DB_PATH)
     if not os.path.isfile(args.input_domains):
-        print(f"Error: The file '{args.input_domains}' does not exist.")
+        logging.print_error(f"The file '{args.input_domains}' does not exist.")
         return
 
     domain_list: List[str] = []
@@ -27,7 +29,7 @@ def handle_enumerate(args: argparse.Namespace) -> None:
         with open(args.input_domains, 'r') as file:
             domain_list = [line.strip() for line in file]
     except Exception as e:
-        print(f"An error occurred while reading the file: {e}")
+        logging.print_error(f"An error occurred while reading the file: {e}")
         return
 
     db.insert_domains(domain_list, config.DB_PATH)
@@ -39,8 +41,8 @@ def handle_enumerate(args: argparse.Namespace) -> None:
 
     count_targets_after = db.get_count_targets(config.DB_PATH)
     new_targets_count = count_targets_after - count_targets_before
-    print(f"SUMMARY: Added {new_targets_count} subdomains")
-    print(f"SUMMARY: Current Total: {count_targets_after} subdomains")
+    logging.print_info(f"Added {new_targets_count} subdomains")
+    logging.print_info(f"Current Total: {count_targets_after} subdomains")
 
 def handle_backup() -> None:
     db.backup(config.DB_PATH, config.BACKUP_DIR_PATH)
@@ -49,48 +51,48 @@ def handle_verify(args: argparse.Namespace) -> None:
     total_targets = db.get_count_targets(config.DB_PATH)
     count_verified_before = db.get_count_verified(config.DB_PATH)
     if args.all:
-        print("Verifying all subdomains ...")
+        logging.print_info("Verifying all subdomains ...")
         dns.validate_all(config.DB_PATH)
     elif args.unverified:
-        print("Verifying only unverified domains ...")
+        logging.print_info("Verifying only unverified domains ...")
         if args.input_date:
             if is_valid_date(args.input_date):
-                print(f"Verifying records created on: {args.input_date}")
+                logging.print_info(f"Verifying records created on: {args.input_date}")
                 dns.validate_unverified_date(config.DB_PATH, args.input_date)
             else:
-                print(colored(f"ERROR: {args.input_date} is not a valid date, use YYYY-MM-DD format.", "red"))
+                logging.print_error(f"{args.input_date} is not a valid date, use YYYY-MM-DD format.")
                 sys.exit(1)
         else:
             dns.validate_unverified(config.DB_PATH)
 
     count_verified_after = db.get_count_verified(config.DB_PATH)
     count_new_verified = count_verified_after - count_verified_before
-    print(f"SUMMARY: Verified {count_new_verified} new subdomains")
-    print(f"SUMMARY: Total Verified/Total: {count_verified_after}/{total_targets}")
+    logging.print_info(f"Verified {count_new_verified} new subdomains")
+    logging.print_info(f"Total Verified/Total: {count_verified_after}/{total_targets}")
 
 def handle_import(args: argparse.Namespace) -> None:
     if args.nuclei_results:
         if not os.path.isfile(args.nuclei_results):
-            print(f"Error: The file '{args.nuclei_results}' does not exist.")
+            logging.print_error(f"The file '{args.nuclei_results}' does not exist.")
             return
         nuclei.integrate_nuclei_results(args.nuclei_results, config.DB_PATH)
     elif args.input_target_domains:
         if not os.path.isfile(args.input_target_domains):
-            print(f"Error: The file '{args.input_target_domains}' does not exist.")
+            logging.print_error(f"The file '{args.input_target_domains}' does not exist.")
             return
         count_targets_before = db.get_count_targets(config.DB_PATH)
         targets.integrate_targets(args.input_target_domains, config.DB_PATH)
         count_targets_after = db.get_count_targets(config.DB_PATH)
         new_targets_count = count_targets_after - count_targets_before
-        print(f"SUMMARY: Added {new_targets_count} subdomains")
-        print(f"SUMMARY: Current Total: {count_targets_after} subdomains")
+        logging.print_info(f"Added {new_targets_count} subdomains")
+        logging.print_info(f"Current Total: {count_targets_after} subdomains")
 
 def handle_export(args: argparse.Namespace) -> None:
     extracted_domains = db.get_domains_where(config.DB_PATH, args.where_clause)
     if not extracted_domains:
-        print(f"INFO: No domains matched the where clause criteria")
+        logging.print_info(f"No domains matched the where clause criteria")
         return
-    print(f"SUMMARY: Fetched {len(extracted_domains)} domains")
+    logging.print_info(f"Fetched {len(extracted_domains)} domains")
     targets.save_targets_to_file(extracted_domains, args.output_domains)
 
 def create_parser() -> argparse.ArgumentParser:
@@ -117,20 +119,34 @@ def create_parser() -> argparse.ArgumentParser:
 
     parser_backup = subparsers.add_parser('backup', help='Backup the DB as csv and txt')
 
+    paser_stats = subparsers.add_parser('stats', help="Get statistics about the storage space usage and more")
     return parser
 
 def main() -> None:
+
+    # print banner art:
+    banner_art = """
+    ______                       ____                      
+   /  _/ /_  ______ ______      / __ \___  _________  ____ 
+   / // / / / / __ `/ ___/_____/ /_/ / _ \/ ___/ __ \/ __ \\
+ _/ // / /_/ / /_/ (__  )_____/ _, _/  __/ /__/ /_/ / / / /
+/___/_/\__, /\__,_/____/     /_/ |_|\___/\___/\____/_/ /_/    v1.0.0
+      /____/                                                                                                                                                                                                                    
+"""
+
+    print(colored(banner_art, "white", attrs=["bold"]))
+
     db.db_init(config.DB_PATH)
     parser = create_parser()
     args = parser.parse_args()
 
     if args.command == 'verify':
         if not (args.all or args.unverified):
-            print("Error: Please specify either '--all' or '--unverified'")
+            logging.print_error("Please specify either '--all' or '--unverified'")
             parser.print_help()
             sys.exit(1)
         if args.input_date and not args.unverified:
-            print("Error: --date can only be used with --unverified")
+            logging.print_error("--date can only be used with --unverified")
             parser.print_help()
             sys.exit(1)
 
@@ -144,6 +160,8 @@ def main() -> None:
         handle_import(args)
     elif args.command == 'export':
         handle_export(args)
+    elif args.command == 'stats':
+        stats.get_total_size(__file__)
 
 if __name__ == "__main__":
     main()

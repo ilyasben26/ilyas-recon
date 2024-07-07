@@ -1,5 +1,6 @@
 from core.db import get_all_targets, update_dns_records, get_unverified_targets, get_unverified_date_targets
 from core.enumerate import run_command
+import core.logging as logging
 import core.config as config
 import ipaddress
 import os
@@ -15,7 +16,7 @@ def validate(subdomain_list: List[str]) -> None:
         for domain in subdomain_list:
             file.write(f"{domain}\n")
 
-    print("Running massdns on targets ...")
+    logging.print_info("Running massdns on targets ...")
     run_command(f"massdns -r {config.RESOLVERS} -o S -w {config.MASSDNS_OUTPUT_TEMP} {config.MASSDNS_INPUT_TEMP}")
 
     domain_records = read_domain_records(config.MASSDNS_OUTPUT_TEMP)
@@ -26,14 +27,14 @@ def validate(subdomain_list: List[str]) -> None:
 
     if domain_records:
         domain_dict = parse_domain_records(domain_records)
-        print("Updating resolved domains ...")
+        logging.print_info("Updating resolved domains ...")
         update_dns_records(domain_dict, config.DB_PATH)
 
 
 def validate_all(db_path: str) -> None:
     """Validate all subdomains in the database."""
     subdomain_list = get_all_targets(db_path)
-    print(f"Total targets to process: {len(subdomain_list)}")
+    logging.print_info(f"Total targets to process: {len(subdomain_list)}")
     if subdomain_list:
         validate(subdomain_list)
 
@@ -41,7 +42,7 @@ def validate_all(db_path: str) -> None:
 def validate_unverified(db_path: str) -> None:
     """Validate all unverified subdomains in the database."""
     subdomain_list = get_unverified_targets(db_path)
-    print(f"Total targets to process: {len(subdomain_list)}")
+    logging.print_info(f"Total targets to process: {len(subdomain_list)}")
     if subdomain_list:
         validate(subdomain_list)
 
@@ -49,7 +50,7 @@ def validate_unverified(db_path: str) -> None:
 def validate_unverified_date(db_path: str, date: str) -> None:
     """Validate all unverified subdomains in the database created on a specific date."""
     subdomain_list = get_unverified_date_targets(db_path, date)
-    print(f"Total targets to process: {len(subdomain_list)}")
+    logging.print_info(f"Total targets to process: {len(subdomain_list)}")
     if subdomain_list:
         validate(subdomain_list)
 
@@ -57,7 +58,7 @@ def validate_unverified_date(db_path: str, date: str) -> None:
 def read_domain_records(file_path: str) -> List[str]:
     """Read domain records from a file."""
     if os.stat(file_path).st_size == 0:
-        print("The massdns results file is empty. No records to process.")
+        logging.print_info("The massdns results file is empty. No records to process.")
         return []
 
     with open(file_path, 'r') as file:
