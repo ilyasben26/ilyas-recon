@@ -1,0 +1,9 @@
+ilyas-recon.sqlite3
+todo.md
+/core/__pycache__/
+/backup/*
+/logs/*
+/myvenv
+/outputs/*
+/inputs/*
+!/inputs/resolvers.txt
