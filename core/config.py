@@ -1,4 +1,4 @@
-# Edit these with your own locations
+# Edit these with your own tool locations
 SUBLIST3R_PATH = "/Users/ilyas/Documents/GitHub/My-Recon-Methodology/Sublist3r/sublist3r.py"
 SUBFINDER_PATH = "$HOME/go/bin/subfinder"
 OAM_SUBS_PATH = "$HOME/go/bin/oam_subs"
