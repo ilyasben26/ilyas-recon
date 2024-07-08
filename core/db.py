@@ -5,6 +5,7 @@ from termcolor import colored  # type: ignore
 import os
 from typing import List, Dict, Tuple, Any
 import core.logging as logging
+import shutil
 
 
 def db_init(db_path: str) -> None:
@@ -97,7 +98,7 @@ def insert_targets(target_list: List[str], db_path: str) -> None:
 
 
 def backup(db_path: str, backup_dir: str) -> None:
-    """Backup the database by exporting 'targets' table to CSV and text files."""
+    """Backup the database by exporting 'targets' table to CSV, subdomains as txt and also the full sqlite DB."""
     try:
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
@@ -120,6 +121,10 @@ def backup(db_path: str, backup_dir: str) -> None:
         with open(txt_file_path, 'w') as txtfile:
             for domain in domains:
                 txtfile.write(f"{domain[0]}\n")
+
+        # Backup the entire SQLite database file
+        db_backup_path = os.path.join(backup_dir, os.path.basename(db_path))
+        shutil.copy2(db_path, db_backup_path)
 
         print(f"DB was successfully backed-up in {backup_dir}")
 
