@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # An example of how ilyas-recon can be used to automate DNS validation
-# Run this script overnight since
+# Run this script overnight since DNS validation makes your ISP block you for some minutes.
 
 iterations=50
 target_date="2024-07-07"
