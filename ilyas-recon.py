@@ -95,43 +95,64 @@ def handle_export(args: argparse.Namespace) -> None:
     logging.print_info(f"Fetched {len(extracted_domains)} domains")
     targets.save_targets_to_file(extracted_domains, args.output_domains)
 
+def handle_stats() -> None:
+    stats.get_total_size(__file__)
+    count_total = db.get_count_targets(config.DB_PATH)
+    logging.print_info(f"{count_total} subdomains")
+    count_verified = db.get_count_verified(config.DB_PATH)
+    logging.print_info(f"{count_verified} verified subdomains")
+
+
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Ilyas Recon Tool")
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
 
+    # Subparser for 'enumerate' command
     parser_enumerate = subparsers.add_parser('enumerate', help='Enumerate domains')
-    parser_enumerate.add_argument('-l', '--input-file', type=str, required=True, dest='input_domains', help='Path to the input file containing domains')
+    parser_enumerate.add_argument('-l', '--input-file', type=str, required=True,
+                                  dest='input_domains', help='Path to the input file containing domains')
 
-    parser_import = subparsers.add_parser('import', help="to import domains and other things")
+    # Subparser for 'import' command
+    parser_import = subparsers.add_parser('import', help="Import domains and other things")
     group_import = parser_import.add_mutually_exclusive_group(required=True)
-    group_import.add_argument('--nuclei-results', type=str, dest='nuclei_results', help='Path of the nuclei results txt file')
-    group_import.add_argument('--targets', type=str, dest='input_target_domains', help='Path of the input domains list txt file')
-    
-    parser_export = subparsers.add_parser('export', help='to export domains and other things')
-    parser_export.add_argument('--where', type=str, required=True, dest='where_clause', help='the where statement part of the query to extract the domains')
-    parser_export.add_argument('-o', '--output-file', type=str, required=True, dest='output_domains', help='Path to the output file that will contain the domains')
+    group_import.add_argument('--nuclei-results', type=str, dest='nuclei_results',
+                              help='Path of the nuclei results txt file')
+    group_import.add_argument('--targets', type=str, dest='input_target_domains',
+                              help='Path of the input domains list txt file')
 
+    # Subparser for 'export' command
+    parser_export = subparsers.add_parser('export', help='Export domains and other things')
+    parser_export.add_argument('--where', type=str, required=True, dest='where_clause',
+                               help='The where statement part of the query to extract the domains')
+    parser_export.add_argument('-o', '--output-file', type=str, required=True, dest='output_domains',
+                               help='Path to the output file that will contain the domains')
+
+    # Subparser for 'verify' command
     parser_verify = subparsers.add_parser('verify', help='Verify domains')
     group_verify = parser_verify.add_mutually_exclusive_group(required=True)
     group_verify.add_argument('--all', action='store_true', help='Verify all domains')
     group_verify.add_argument('--unverified', action='store_true', help='Verify only unverified domains')
-    parser_verify.add_argument('--date', type=str, dest='input_date', help='Verify only unverified domains at this date (YYYY-MM-DD)')
+    parser_verify.add_argument('--date', type=str, dest='input_date',
+                               help='Verify only unverified domains at this date (YYYY-MM-DD)')
 
+    # Subparser for 'backup' command
     parser_backup = subparsers.add_parser('backup', help='Backup the DB as csv and txt')
 
-    paser_stats = subparsers.add_parser('stats', help="Get statistics about the storage space usage and more")
+    # Subparser for 'stats' command
+    parser_stats = subparsers.add_parser('stats', help="Get statistics about the storage space usage and more")
+
     return parser
 
 def main() -> None:
 
     # print banner art:
     banner_art = """
-    ______                       ____                      
-   /  _/ /_  ______ ______      / __ \___  _________  ____ 
-   / // / / / / __ `/ ___/_____/ /_/ / _ \/ ___/ __ \/ __ \\
- _/ // / /_/ / /_/ (__  )_____/ _, _/  __/ /__/ /_/ / / / /
-/___/_/\__, /\__,_/____/     /_/ |_|\___/\___/\____/_/ /_/    v1.0.0
-      /____/                                                                                                                                                                                                                    
+    ______                       ____                         
+   /  _/ /_  ______ ______      / __ \___  _________  ____     v1.0.0
+   / // / / / / __ `/ ___/_____/ /_/ / _ \/ ___/ __ \/ __ \\    ||  ||        
+ _/ // / /_/ / /_/ (__  )_____/ _, _/  __/ /__/ /_/ / / / /    \\\()// 
+/___/_/\__, /\__,_/____/     /_/ |_|\___/\___/\____/_/ /_/    //(__)\\\\
+      /____/                                                                                                                                                                                      
 """
 
     print(colored(banner_art, "white", attrs=["bold"]))
@@ -161,7 +182,7 @@ def main() -> None:
     elif args.command == 'export':
         handle_export(args)
     elif args.command == 'stats':
-        stats.get_total_size(__file__)
+        handle_stats()
 
 if __name__ == "__main__":
     main()

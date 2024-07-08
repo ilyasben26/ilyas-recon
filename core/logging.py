@@ -1,8 +1,5 @@
 from termcolor import colored  # type: ignore
 
-
-
-
 def print_error(message: str) -> None:
     print(colored(f"[ERR] {message}", "red"))
 

@@ -39,4 +39,4 @@ def get_total_size(directory: str) -> None:
         size = total_size
         unit = 'bytes'
 
-    logging.print_info(f'Total size of the project: {size:.2f} {unit}')
+    logging.print_info(f'{size:.2f} {unit} project size')
