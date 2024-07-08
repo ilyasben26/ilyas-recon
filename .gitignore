@@ -7,3 +7,9 @@ todo.md
 /outputs/*
 /inputs/*
 !/inputs/resolvers.txt
+
+/workflows/*
+!/workflows/mass_verify_date.sh
+!/workflows/mass_verify.sh
+
+/tests/__pycache__/
