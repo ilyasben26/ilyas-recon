@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import mock_open, patch
-from core.targets import extract_subdomains  # Assuming extract_subdomains is implemented in a separate module
+from core.targets import extract_subdomains
 
 class TestExtractSubdomains(unittest.TestCase):
 
