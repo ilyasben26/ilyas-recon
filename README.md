@@ -1,4 +1,12 @@
 # ilyas-recon
+```
+    ______                       ____                         
+   /  _/ /_  ______ ______      / __ \___  _________  ____     v1.0.0
+   / // / / / / __ `/ ___/_____/ /_/ / _ \/ ___/ __ \/ __ \    ||  ||        
+ _/ // / /_/ / /_/ (__  )_____/ _, _/  __/ /__/ /_/ / / / /    \\()// 
+/___/_/\__, /\__,_/____/     /_/ |_|\___/\___/\____/_/ /_/    //(__)\\
+      /____/                                                                                                                            
+```
 ## Overview
 ilyas-recon is a comprehensive reconnaissance tool designed for subdomain enumeration, DNS validation, import/export, and backup operations.
 Furthermore, your recon data is stored in a SQLite3 database, giving you the power to use SQL to query it later on.
