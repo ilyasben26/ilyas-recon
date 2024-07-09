@@ -13,3 +13,4 @@ todo.md
 !/workflows/mass_verify.sh
 
 /tests/__pycache__/
+/.pytest_cache
